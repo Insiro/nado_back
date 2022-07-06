@@ -6,18 +6,12 @@ import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CommentModule } from './comment/comment.module';
+import { DatabaseConfig } from './database.config';
 
-const typeormOption: TypeOrmModuleOptions = {
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'nado',
-  password: 'nado123@',
-  database: 'nado',
-  synchronize: true,
-  logging: false,
+const typeormOption = {
+  ...DatabaseConfig,
   autoLoadEntities: true,
-};
+} as TypeOrmModuleOptions;
 
 @Module({
   imports: [
