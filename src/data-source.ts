@@ -4,5 +4,5 @@ import { DatabaseConfig } from './database.config';
 
 export const AppDataSource = new DataSource({
   ...DatabaseConfig,
-  entities: ['.//**/*.entity.ts'],
+  entities: ['./**/*.entity.ts'],
 } as DataSourceOptions);
