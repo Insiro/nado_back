@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import User from './user.entity';
 import { Repository } from 'typeorm';
-import { SignDto, SimpleUserDto } from './user.dto';
+import { RegisterDto, SignDto, SimpleUserDto } from './user.dto';
 
 @Injectable()
 export class UserService {
@@ -15,11 +15,14 @@ export class UserService {
     return await this.userRepository.findOne({ where: { uuid: uid } });
   }
 
-  async signIn(signInfo: SignDto): Promise<SimpleUserDto | null> {
-    return null;
+  verify(user: User, pwd): boolean {
+    //TODO: verify user pwd
+    return false;
   }
 
-  async getUser(uid: string): Promise<SimpleUserDto | null> {
-    return null;
+  async register(reqBody: RegisterDto): Promise<boolean> {
+    //TODO: register user
+
+    return false;
   }
 }
