@@ -6,7 +6,7 @@ export type SimpleUserInfoDto = Required<
 
 export type DetailedUserInfoDto = SimpleUserInfoDto;
 
-export type RegisterDto = DetailedUserInfoDto & {
+export type EditableUserInfoDto = Omit<User, 'uuid' | 'cert' | 'salt'> & {
   readonly pwd: string;
 };
 
