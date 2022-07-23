@@ -1,19 +1,21 @@
 import User from './user.entity';
 
 export type SimpleUserInfoDto = Required<
-  Readonly<Pick<User, 'uuid' | 'user_name' | 'email'>>
+  Readonly<Pick<User, 'uid' | 'user_name' | 'email'>>
 >;
 
 export type DetailedUserInfoDto = SimpleUserInfoDto;
 
-export type EditableUserInfoDto = Omit<User, 'uuid' | 'cert' | 'salt'> & {
+export type RegisterUserInfoDto = Omit<User, 'cert' | 'salt'> & {
   readonly pwd: string;
 };
 
-export type SignDto = Required<Readonly<Pick<User, 'uuid'>>> & {
+export type EditableUserInfoDto = Omit<RegisterUserInfoDto, 'uid'> & {
   readonly pwd: string;
 };
 
-export type SimpleUserDto = Required<
-  Readonly<Pick<User, 'uuid' | 'user_name'>>
->;
+export type SignDto = Required<Readonly<Pick<User, 'uid'>>> & {
+  readonly pwd: string;
+};
+
+export type SimpleUserDto = Required<Readonly<Pick<User, 'uid' | 'user_name'>>>;

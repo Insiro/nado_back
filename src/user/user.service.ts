@@ -5,11 +5,17 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
 import { SessionType } from '../utils';
 
 import User from './user.entity';
-import { EditableUserInfoDto, SignDto, SimpleUserDto } from './user.dto';
+import {
+  EditableUserInfoDto,
+  RegisterUserInfoDto,
+  SignDto,
+  SimpleUserDto,
+} from './user.dto';
 
 @Injectable()
 export class UserService {
@@ -18,7 +24,7 @@ export class UserService {
   ) {}
 
   async getOne(uid: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { uuid: uid } });
+    return await this.userRepository.findOne({ where: { uid: uid } });
   }
 
   verify(user: User, pwd): boolean {
@@ -32,7 +38,10 @@ export class UserService {
       .digest('hex');
   }
 
-  async register(reqBody: EditableUserInfoDto): Promise<boolean> {
+  async register(reqBody: RegisterUserInfoDto): Promise<boolean> {
+    if ((await this.getOne(reqBody.uid)) !== null)
+      throw new ConflictException();
+
     const salt = Math.round(new Date().valueOf() * Math.random()) + '';
     const hashed_pwd = this.hash(reqBody.pwd, salt);
     const user = { salt: salt, cert: hashed_pwd, ...reqBody };
@@ -51,7 +60,7 @@ export class UserService {
   }
 
   updateSession(session: SessionType, sessionInfo: SimpleUserDto) {
-    session.uid = sessionInfo.uuid;
+    session.uid = sessionInfo.uid;
     session.name = sessionInfo.user_name;
     session.save();
   }
@@ -62,14 +71,14 @@ export class UserService {
     if (!this.verify(user, updateInfo.pwd)) throw new UnauthorizedException();
 
     const updated = await this.userRepository.save({
-      uuid: user.uuid,
+      uuid: user.uid,
       ...updateInfo,
     });
     this.updateSession(session, updated);
   }
 
   async signIn(signInfo: SignDto, session: SessionType): Promise<User> {
-    const user = await this.getOne(signInfo.uuid);
+    const user = await this.getOne(signInfo.uid);
     if (user == null) throw new NotFoundException();
     if (!this.verify(user, signInfo.pwd)) throw new UnauthorizedException();
     this.updateSession(session, user);

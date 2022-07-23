@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { SessionType } from '../utils';
 
-import { EditableUserInfoDto, SignDto, SimpleUserDto } from './user.dto';
+import { RegisterUserInfoDto, SignDto, SimpleUserDto } from './user.dto';
 import { UserService } from './user.service';
 
 @Controller('auth')
@@ -35,7 +35,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async registerUser(@Body reqBody: EditableUserInfoDto) {
+  async registerUser(@Body reqBody: RegisterUserInfoDto) {
     const result = await this.service.register(reqBody);
     if (!result) throw new NotAcceptableException();
     return;
