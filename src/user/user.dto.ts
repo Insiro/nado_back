@@ -1,17 +1,19 @@
-export class SimpleUserInfoDto {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-}
+import User from './user.entity';
 
-export class DetailedUserInfoDto extends SimpleUserInfoDto {}
+export type SimpleUserInfoDto = Required<
+  Readonly<Pick<User, 'uuid' | 'user_name' | 'email'>>
+>;
 
-export class SignDto {
-  readonly id: string;
+export type DetailedUserInfoDto = SimpleUserInfoDto;
+
+export type RegisterDto = DetailedUserInfoDto & {
   readonly pwd: string;
-}
+};
 
-export class SimpleUserDto {
-  readonly id: string;
-  readonly name: string;
-}
+export type SignDto = Required<Readonly<Pick<User, 'uuid'>>> & {
+  readonly pwd: string;
+};
+
+export type SimpleUserDto = Required<
+  Readonly<Pick<User, 'uuid' | 'user_name'>>
+>;

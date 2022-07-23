@@ -7,7 +7,7 @@ export default class User {
   @Column()
   email!: string;
   @Column()
-  userName!: string;
+  user_name!: string;
   @Column()
   salt!: string;
   @Column()
