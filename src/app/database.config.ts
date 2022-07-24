@@ -10,3 +10,14 @@ export const DatabaseConfig: DataSourceOptions = {
   synchronize: false,
   logging: false,
 };
+
+export const DatabaseTestConfig: DataSourceOptions = {
+  type: 'mysql',
+  host: 'localhost',
+  port: 3306,
+  username: 'nado',
+  password: 'nado123@',
+  database: 'nadoTest',
+  synchronize: true,
+  logging: false,
+};
