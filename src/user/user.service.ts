@@ -6,10 +6,11 @@ import {
   NotFoundException,
   UnauthorizedException,
   ConflictException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { SessionType } from '../utils';
 
-import User from './user.entity';
+import User from '../entities/user.entity';
 import {
   EditableUserInfoDto,
   RegisterUserInfoDto,
@@ -38,13 +39,17 @@ export class UserService {
       .digest('hex');
   }
 
-  async register(reqBody: RegisterUserInfoDto): Promise<boolean> {
+  make_cert(pwd: string): { salt: string; cert: string } {
+    const salt = Math.round(new Date().valueOf() * Math.random()) + '';
+    const hashed_pwd = this.hash(pwd, salt);
+    return { salt: salt, cert: hashed_pwd };
+  }
+
+  async register(reqBody: RegisterUserInfoDto) {
     if ((await this.getOne(reqBody.uid)) !== null)
       throw new ConflictException();
-
-    const salt = Math.round(new Date().valueOf() * Math.random()) + '';
-    const hashed_pwd = this.hash(reqBody.pwd, salt);
-    const user = { salt: salt, cert: hashed_pwd, ...reqBody };
+    const hashed = this.make_cert(reqBody.pwd);
+    const user = { ...hashed, ...reqBody };
 
     const insertQuery = this.userRepository
       .createQueryBuilder()
@@ -53,9 +58,8 @@ export class UserService {
       .values(user);
     try {
       await insertQuery.execute();
-      return true;
     } catch (e) {
-      return false;
+      throw new UnprocessableEntityException();
     }
   }
 
@@ -65,11 +69,21 @@ export class UserService {
     session.save();
   }
 
-  async update(session: SessionType, updateInfo: EditableUserInfoDto) {
-    const user = await this.getOne(session.uid);
-    if (user === null) throw new NotFoundException();
-    if (!this.verify(user, updateInfo.pwd)) throw new UnauthorizedException();
+  async getById(uid?: string): Promise<User> {
+    if (!uid) throw new NotFoundException();
+    const user = await this.getOne(uid);
+    if (!user) throw new NotFoundException();
+    return user;
+  }
 
+  async update(session: SessionType, updateInfo: EditableUserInfoDto) {
+    let user: User;
+    try {
+      user = await this.getById(session.uid);
+    } catch (_) {
+      throw new UnauthorizedException();
+    }
+    if (!this.verify(user, updateInfo.pwd)) throw new UnauthorizedException();
     const updated = await this.userRepository.save({
       uuid: user.uid,
       ...updateInfo,
@@ -78,8 +92,7 @@ export class UserService {
   }
 
   async signIn(signInfo: SignDto, session: SessionType): Promise<User> {
-    const user = await this.getOne(signInfo.uid);
-    if (user == null) throw new NotFoundException();
+    const user = await this.getById(session.uid);
     if (!this.verify(user, signInfo.pwd)) throw new UnauthorizedException();
     this.updateSession(session, user);
     return user;

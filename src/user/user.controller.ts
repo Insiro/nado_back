@@ -31,7 +31,7 @@ export class UserController {
   }
 
   @Get()
-  async getSigned(@Session session: SessionType): Promise<SimpleUserInfoDto> {
+  async getSigned(@Session() session: SessionType): Promise<SimpleUserInfoDto> {
     if (!session.uid) throw new NotFoundException();
     const user = await this.userService.getOne(session.uid);
     if (user === null) throw new NotFoundException();

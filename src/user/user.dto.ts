@@ -1,4 +1,4 @@
-import User from './user.entity';
+import User from '../entities/user.entity';
 
 export type SimpleUserInfoDto = Required<
   Readonly<Pick<User, 'uid' | 'user_name' | 'email'>>
