@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -29,6 +30,12 @@ export class PostController {
     return await this.postService.getPosts(offset, count);
   }
 
+  @Post()
+  async newPost(@Session() session: SessionType, @Body() postOpt: NewPostDto) {
+    const user = await this.userService.getById(session.uid);
+    await this.postService.newPost(user, postOpt);
+  }
+
   @Get(':id/posts')
   async getSubPosts(@Param('id') postId: string): Promise<Posts[]> {
     return await this.postService.getSubPosts(postId);
@@ -37,12 +44,6 @@ export class PostController {
   @Get(':id')
   async getOne(@Param('id') postId: string): Promise<Posts> {
     return await this.postService.getOne(postId);
-  }
-
-  @Post()
-  async newPost(@Session() session: SessionType, @Body() postOpt: NewPostDto) {
-    const user = await this.userService.getById(session.uid);
-    await this.postService.newPost(user, postOpt);
   }
 
   @Post(':id')
@@ -63,5 +64,14 @@ export class PostController {
   ) {
     const user = await this.userService.getById(session.uid);
     await this.postService.updatePost(user, postId, postOpt);
+  }
+
+  @Delete('id')
+  async deletePost(
+    @Session() session: SessionType,
+    @Param('id') postId: string,
+  ) {
+    const user = await this.userService.getById(session.uid);
+    await this.postService.deletePost(user, postId);
   }
 }

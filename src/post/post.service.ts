@@ -41,18 +41,14 @@ export class PostService {
     postOpt: NewPostDto,
     postId: string | null = null,
   ) {
-    let parent: Posts | null = null;
-    if (!postId) {
-      parent = await this.getOne(postId);
-      if (parent == null) throw new NotFoundException();
-    }
-    const query = this.postRepository
-      .createQueryBuilder()
-      .insert()
-      .into(Posts)
-      .values({ ...postOpt, parent: parent, author: author });
+    const parent = await this.getOne(postId);
     try {
-      await query.execute();
+      await this.postRepository
+        .createQueryBuilder()
+        .insert()
+        .into(Posts)
+        .values({ ...postOpt, parent: parent, author: author })
+        .execute();
     } catch (e) {
       throw new UnprocessableEntityException();
     }
@@ -66,14 +62,20 @@ export class PostService {
   async updatePost(user: User, postId: string, postOpt: NewPostDto) {
     const post = await this.getOne(postId);
     if (post.author.uid !== user.uid) throw new UnauthorizedException();
-    const query = this.postRepository
-      .createQueryBuilder()
-      .update(post)
-      .set({ ...postOpt });
     try {
-      await query.execute();
+      await this.postRepository
+        .createQueryBuilder()
+        .update(post)
+        .set({ ...postOpt })
+        .execute();
     } catch (_) {
       throw new UnprocessableEntityException();
     }
+  }
+
+  async deletePost(user: User, postId: string) {
+    const post = await this.getOne(postId);
+    if (post.author.uid != user.uid) throw new UnauthorizedException();
+    await this.postRepository.delete(post);
   }
 }
