@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Post,
-  Session,
-  NotAcceptableException,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Session } from '@nestjs/common';
 import { SessionType } from '../utils';
 
 import { RegisterUserInfoDto, SignDto, SimpleUserDto } from './user.dto';
@@ -36,8 +28,6 @@ export class AuthController {
 
   @Post('register')
   async registerUser(@Body reqBody: RegisterUserInfoDto) {
-    const result = await this.service.register(reqBody);
-    if (!result) throw new NotAcceptableException();
-    return;
+    await this.service.register(reqBody);
   }
 }
