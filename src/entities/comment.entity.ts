@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import User from '../user/user.entity';
-import Post from '../post/post.entity';
+import User from './user.entity';
+import Posts from './post.entity';
 
 @Entity('comment')
 export default class Comment {
@@ -8,10 +8,10 @@ export default class Comment {
   id!: string;
   @Column()
   content!: string;
-  @ManyToOne(() => User, (user: User | null) => user?.uuid, { cascade: false })
+  @ManyToOne(() => User, (user: User | null) => user?.uid, { cascade: false })
   author!: User | null;
-  @ManyToOne(() => Post, (post: Post) => post.id, { cascade: true })
-  post!: Post;
+  @ManyToOne(() => Posts, (post: Posts) => post.id, { cascade: true })
+  post!: Posts;
   @ManyToOne(() => Comment, (comment: Comment | null) => comment.id, {
     cascade: false,
   })
