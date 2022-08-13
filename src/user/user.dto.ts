@@ -1,21 +1,32 @@
-import User from '../entities/user.entity';
+import { Allow, IsEmail } from 'class-validator';
 
-export type SimpleUserInfoDto = Required<
-  Readonly<Pick<User, 'uid' | 'user_name' | 'email'>>
->;
+class CommonUserInfo {
+  @Allow()
+  user_name: string;
+  @IsEmail()
+  email: string;
+}
 
-export type DetailedUserInfoDto = SimpleUserInfoDto;
+export class UserInfoDto extends CommonUserInfo {
+  @Allow()
+  uid: string;
+}
 
-export type RegisterUserInfoDto = Omit<User, 'cert' | 'salt'> & {
+export type DetailedUserInfoDto = UserInfoDto;
+
+export class RegisterUserDto extends UserInfoDto {
+  @Allow()
+  pwd: string;
+}
+
+export class EditableUserInfoDto extends CommonUserInfo {
+  @Allow()
   readonly pwd: string;
-};
+}
 
-export type EditableUserInfoDto = Omit<RegisterUserInfoDto, 'uid'> & {
+export class SignDto {
+  @Allow()
+  readonly uid: string;
+  @Allow()
   readonly pwd: string;
-};
-
-export type SignDto = Required<Readonly<Pick<User, 'uid'>>> & {
-  readonly pwd: string;
-};
-
-export type SimpleUserDto = Required<Readonly<Pick<User, 'uid' | 'user_name'>>>;
+}
