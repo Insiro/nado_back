@@ -1,8 +1,9 @@
 import { Body, Controller, Delete, Get, Post, Session } from '@nestjs/common';
 import { SessionType } from '../utils';
 
-import { RegisterUserInfoDto, SignDto, SimpleUserDto } from './user.dto';
+import { RegisterUserDto, SignDto, UserInfoDto } from './user.dto';
 import { UserService } from './user.service';
+import { validate } from 'class-validator';
 
 @Controller('auth')
 export class AuthController {
@@ -10,15 +11,18 @@ export class AuthController {
 
   @Get()
   chkSigned(@Session() session: SessionType): boolean {
-    return !session.uid;
+    return !!session.uid;
   }
 
   @Post()
   async signIn(
     @Body() reqBody: SignDto,
     @Session() session: SessionType,
-  ): Promise<SimpleUserDto> {
-    return await this.service.signIn(reqBody, session);
+  ): Promise<UserInfoDto> {
+    const user = (await this.service.signIn(reqBody, session)) as UserInfoDto;
+
+    await validate(user, { whitelist: true });
+    return user;
   }
 
   @Delete()
@@ -27,7 +31,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async registerUser(@Body reqBody: RegisterUserInfoDto) {
+  async registerUser(@Body() reqBody: RegisterUserDto) {
     await this.service.register(reqBody);
   }
 }
