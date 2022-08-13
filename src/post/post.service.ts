@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { NewPostDto } from './post.dto';
+import { EditPostDto, NewPostDto } from './post.dto';
 
 import Posts from '../entities/post.entity';
 import User from '../entities/user.entity';
@@ -59,7 +59,7 @@ export class PostService {
     return await this.postRepository.findBy({ parent: post });
   }
 
-  async updatePost(user: User, postId: string, postOpt: NewPostDto) {
+  async updatePost(user: User, postId: string, postOpt: EditPostDto) {
     const post = await this.getOne(postId);
     if (post.author.uid !== user.uid) throw new UnauthorizedException();
     try {
@@ -77,5 +77,9 @@ export class PostService {
     const post = await this.getOne(postId);
     if (post.author.uid != user.uid) throw new UnauthorizedException();
     await this.postRepository.delete(post);
+  }
+
+  async getByAuthor(user: User): Promise<Posts[]> {
+    return await this.postRepository.find({ where: { author: user } });
   }
 }

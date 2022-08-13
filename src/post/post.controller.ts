@@ -10,16 +10,20 @@ import {
   Session,
 } from '@nestjs/common';
 import Posts from '../entities/post.entity';
-import { PostService } from './post.service';
-import { NewPostDto } from './post.dto';
+import Comment from '../entities/comment.entity';
 import { SessionType } from '../utils';
+
 import { UserService } from '../user/user.service';
+import { PostService } from './post.service';
+import { CommentService } from '../comment/comment.service';
+import { NewPostDto } from './post.dto';
 
 @Controller('post')
 export class PostController {
   constructor(
     readonly postService: PostService,
     readonly userService: UserService,
+    readonly commentService: CommentService,
   ) {}
 
   @Get()
@@ -46,32 +50,38 @@ export class PostController {
     return await this.postService.getOne(postId);
   }
 
+  @Get(':id/comment')
+  async getComment(@Param('id') postId: string): Promise<Comment[]> {
+    const post = await this.postService.getOne(postId);
+    return await this.commentService.getByPosts(post);
+  }
+
   @Post(':id')
   async appendPost(
     @Session() session: SessionType,
     @Param('id') postId: string,
     @Body() postOpt: NewPostDto,
   ) {
-    const user = await this.userService.getById(session.uid);
+    const user = await this.userService.getSigned(session);
     await this.postService.newPost(user, postOpt, postId);
   }
 
-  @Put('id')
+  @Put(':id')
   async rewritePost(
     @Session() session: SessionType,
     @Param('id') postId: string,
     @Body() postOpt: NewPostDto,
   ) {
-    const user = await this.userService.getById(session.uid);
+    const user = await this.userService.getSigned(session);
     await this.postService.updatePost(user, postId, postOpt);
   }
 
-  @Delete('id')
+  @Delete(':id')
   async deletePost(
     @Session() session: SessionType,
     @Param('id') postId: string,
   ) {
-    const user = await this.userService.getById(session.uid);
+    const user = await this.userService.getSigned(session);
     await this.postService.deletePost(user, postId);
   }
 }

@@ -68,7 +68,7 @@ export class UserController {
   @Get(':id/posts')
   async getUserPost(@Param('id') uid: string): Promise<Posts[]> {
     const user = await this.userService.getById(uid);
-    return await this.postService.gerByAuthor(user);
+    return await this.postService.getByAuthor(user);
   }
 
   @Get(':id/comments')
