@@ -9,11 +9,11 @@ export default class Comment {
   @Column()
   content!: string;
   @ManyToOne(() => User, (user: User | null) => user?.uid, { cascade: false })
-  author!: User | null;
+  author!: string | null;
   @ManyToOne(() => Posts, (post: Posts) => post.id, { cascade: true })
-  post!: Posts;
+  post!: string;
   @ManyToOne(() => Comment, (comment: Comment | null) => comment.id, {
     cascade: false,
   })
-  parent!: Comment | null;
+  parent!: string | null;
 }

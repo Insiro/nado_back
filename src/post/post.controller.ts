@@ -40,20 +40,24 @@ export class PostController {
     await this.postService.newPost(user, postOpt);
   }
 
+  @Get('user/:uid')
+  async getUserPost(@Param('uid') uid: string): Promise<Posts[]> {
+    return await this.postService.getByAuthor(uid);
+  }
+
   @Get(':id/posts')
   async getSubPosts(@Param('id') postId: string): Promise<Posts[]> {
     return await this.postService.getSubPosts(postId);
   }
 
+  @Get(':id/comment')
+  async getComment(@Param('id') postId: string): Promise<Comment[]> {
+    return await this.commentService.getByPost(postId);
+  }
+
   @Get(':id')
   async getOne(@Param('id') postId: string): Promise<Posts> {
     return await this.postService.getOne(postId);
-  }
-
-  @Get(':id/comment')
-  async getComment(@Param('id') postId: string): Promise<Comment[]> {
-    const post = await this.postService.getOne(postId);
-    return await this.commentService.getByPosts(post);
   }
 
   @Post(':id')

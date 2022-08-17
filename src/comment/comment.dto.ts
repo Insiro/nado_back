@@ -16,9 +16,9 @@ export class CommentInfoDto extends EditableCommentDto {
 
   static fromComment(comment: Comment): CommentInfoDto {
     return {
-      author: comment.author.uid,
-      post: comment.post.id,
-      parent: comment.parent.id,
+      author: comment.author,
+      post: comment.post,
+      parent: comment.parent,
       content: comment.content,
     };
   }

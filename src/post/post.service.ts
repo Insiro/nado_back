@@ -47,7 +47,7 @@ export class PostService {
         .createQueryBuilder()
         .insert()
         .into(Posts)
-        .values({ ...postOpt, parent: parent, author: author })
+        .values({ ...postOpt, parent: parent.id, author: author.uid })
         .execute();
     } catch (e) {
       throw new UnprocessableEntityException();
@@ -55,13 +55,12 @@ export class PostService {
   }
 
   async getSubPosts(postId: string): Promise<Posts[]> {
-    const post = await this.getOne(postId);
-    return await this.postRepository.findBy({ parent: post });
+    return await this.postRepository.findBy({ parent: postId });
   }
 
   async updatePost(user: User, postId: string, postOpt: EditPostDto) {
     const post = await this.getOne(postId);
-    if (post.author.uid !== user.uid) throw new UnauthorizedException();
+    if (post.author !== user.uid) throw new UnauthorizedException();
     try {
       await this.postRepository
         .createQueryBuilder()
@@ -75,11 +74,11 @@ export class PostService {
 
   async deletePost(user: User, postId: string) {
     const post = await this.getOne(postId);
-    if (post.author.uid != user.uid) throw new UnauthorizedException();
+    if (post.author != user.uid) throw new UnauthorizedException();
     await this.postRepository.delete(post);
   }
 
-  async getByAuthor(user: User): Promise<Posts[]> {
-    return await this.postRepository.find({ where: { author: user } });
+  async getByAuthor(uid: string): Promise<Posts[]> {
+    return await this.postRepository.find({ where: { author: uid } });
   }
 }

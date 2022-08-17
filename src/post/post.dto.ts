@@ -20,8 +20,8 @@ export class PostDto extends NewPostDto {
   static fromPost(post: Posts): PostDto {
     return {
       id: post.id,
-      parent: post.parent.id,
-      author: post.author.uid,
+      parent: post.parent,
+      author: post.author,
       content: post.content,
     };
   }

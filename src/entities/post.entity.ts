@@ -8,7 +8,7 @@ export default class Posts {
   @Column()
   content!: string;
   @ManyToOne(() => User, (user: User | null) => user?.uid, { cascade: false })
-  author!: User | null;
+  author!: string | null;
   @ManyToOne(() => Posts, (post: Posts | null) => post?.id)
-  parent!: Posts | null;
+  parent!: string | null;
 }

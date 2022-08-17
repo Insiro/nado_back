@@ -18,19 +18,11 @@ import {
   EditableUserInfoDto,
   UserInfoDto,
 } from './user.dto';
-import Posts from '../entities/post.entity';
-import Comment from '../entities/comment.entity';
-import { CommentService } from '../comment/comment.service';
-import { PostService } from '../post/post.service';
 import { validate } from 'class-validator';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    readonly userService: UserService,
-    readonly commentService: CommentService,
-    readonly postService: PostService,
-  ) {}
+  constructor(readonly userService: UserService) {}
 
   @Get()
   async getSigned(@Session() session: SessionType): Promise<UserInfoDto> {
@@ -63,18 +55,6 @@ export class UserController {
     if (!!session.uid) throw new UnauthorizedException();
     await this.userService.update(session, body);
     return 'success';
-  }
-
-  @Get(':id/posts')
-  async getUserPost(@Param('id') uid: string): Promise<Posts[]> {
-    const user = await this.userService.getById(uid);
-    return await this.postService.getByAuthor(user);
-  }
-
-  @Get(':id/comments')
-  async getUserComments(@Param('id') uid: string): Promise<Comment[]> {
-    const user = await this.userService.getById(uid);
-    return await this.commentService.getByAuthor(user);
   }
 
   @Get(':id')

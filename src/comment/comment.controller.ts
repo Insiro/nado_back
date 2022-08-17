@@ -24,6 +24,11 @@ export class CommentController {
     readonly userService: UserService,
   ) {}
 
+  @Get('user/:uid')
+  async getCommentsByUid(@Param('uid') uid: string): Promise<Comment[]> {
+    return await this.commentService.getByAuthor(uid);
+  }
+
   @Get('id')
   async getComment(@Param('id') commentId: string): Promise<Comment> {
     return await this.commentService.getOne(commentId);
@@ -35,8 +40,7 @@ export class CommentController {
     @Param('id') commentId: string,
     @Body() commentOpt: EditableCommentDto,
   ) {
-    const user = await this.userService.getSigned(session);
-    await this.commentService.updateComment(user, commentId, commentOpt);
+    await this.commentService.updateComment(session.uid, commentId, commentOpt);
   }
 
   @Post('id')
@@ -46,7 +50,7 @@ export class CommentController {
     @Body() commentOpt: EditableCommentDto,
   ) {
     const user = await this.userService.getSigned(session);
-    await this.commentService.addComment(user, commentOpt, {
+    await this.commentService.addComment(user.uid, commentOpt, {
       parent: commentId,
     });
   }
@@ -57,6 +61,6 @@ export class CommentController {
     @Param('id') commentId: string,
   ) {
     const user = await this.userService.getSigned(session);
-    await this.commentService.deleteComment(user, commentId);
+    await this.commentService.deleteComment(user.uid, commentId);
   }
 }

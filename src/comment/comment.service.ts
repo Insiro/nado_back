@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import Comment from '../entities/comment.entity';
-import User from '../entities/user.entity';
 import Posts from '../entities/post.entity';
 
 import { EditableCommentDto } from './comment.dto';
@@ -26,7 +25,7 @@ export class CommentService {
   }
 
   async addComment(
-    user: User,
+    uid: string,
     commentOpt: EditableCommentDto,
     option: {
       parent?: string;
@@ -34,14 +33,15 @@ export class CommentService {
     },
   ) {
     const comment: Omit<Comment, 'id'> = {
-      author: user,
+      author: uid,
       parent: null,
       post: null,
       ...commentOpt,
     };
     if (option.parent) {
-      comment.parent = await this.getOne(option.parent);
-      comment.post = comment.parent.post;
+      const parent = await this.getOne(option.parent);
+      comment.parent = parent.id;
+      comment.post = parent.post;
     } else if (option.post) {
     } else throw new UnprocessableEntityException();
 
@@ -52,9 +52,9 @@ export class CommentService {
     }
   }
 
-  async deleteComment(user: User, commentId: string) {
+  async deleteComment(uid: string, commentId: string) {
     const comment = await this.getOne(commentId);
-    if (user.uid !== comment.author.uid) throw new UnauthorizedException();
+    if (uid !== comment.author) throw new UnauthorizedException();
     try {
       await this.commentRepository.delete(comment);
     } catch (e) {
@@ -63,12 +63,12 @@ export class CommentService {
   }
 
   async updateComment(
-    user: User,
+    uid: string,
     commentId: string,
     commentOpt: EditableCommentDto,
   ) {
     const comment = await this.getOne(commentId);
-    if (user.uid !== comment.author.uid) throw new UnauthorizedException();
+    if (uid !== comment.author) throw new UnauthorizedException();
     try {
       comment.content = commentOpt.content;
       await this.commentRepository.save(comment);
@@ -77,15 +77,15 @@ export class CommentService {
     }
   }
 
-  async getByPosts(post: Posts): Promise<Comment[]> {
+  async getByPost(postId: string): Promise<Comment[]> {
     return await this.commentRepository.find({
-      where: { post: post },
+      where: { post: postId },
     });
   }
 
-  async getByAuthor(user: User): Promise<Comment[]> {
+  async getByAuthor(uid: string): Promise<Comment[]> {
     return await this.commentRepository.find({
-      where: { author: user },
+      where: { author: uid },
     });
   }
 }
