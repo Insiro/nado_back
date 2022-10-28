@@ -7,7 +7,7 @@ export const DatabaseConfig: DataSourceOptions = {
   username: 'nado',
   password: 'nado123@',
   database: 'nado',
-  synchronize: false,
+  synchronize: true,
   logging: false,
 };
 

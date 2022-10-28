@@ -1,6 +1,6 @@
 import { Session } from 'express-session';
 
-export class SessionType extends Session {
+export type SessionType = Session & {
   uid?: string;
   name?: string;
-}
+};

@@ -19,10 +19,9 @@ export class AuthController {
     @Body() reqBody: SignDto,
     @Session() session: SessionType,
   ): Promise<UserInfoDto> {
-    const user = (await this.service.signIn(reqBody, session)) as UserInfoDto;
+    const user = await this.service.signIn(reqBody, session);
 
-    await validate(user, { whitelist: true });
-    return user;
+    return new UserInfoDto().fromUser(user);
   }
 
   @Delete()

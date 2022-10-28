@@ -77,7 +77,7 @@ export class UserService {
     }
   }
 
-  updateSession(session: SessionType, sessionInfo: UserInfoDto) {
+  updateSession(session: SessionType, sessionInfo: UserInfoDto | User) {
     session.uid = sessionInfo.uid;
     session.name = sessionInfo.user_name;
     session.save();
@@ -87,7 +87,7 @@ export class UserService {
     const user = await this.getSigned(session);
     if (!this.verify(user, updateInfo.pwd)) throw new UnauthorizedException();
     const updated = await this.userRepository.save({
-      uuid: user.uid,
+      uid: user.uid,
       ...updateInfo,
     });
     this.updateSession(session, updated);

@@ -26,11 +26,11 @@ export class UserController {
 
   @Get()
   async getSigned(@Session() session: SessionType): Promise<UserInfoDto> {
-    if (!!session.uid) throw new NotFoundException();
+    if (!session.uid) throw new NotFoundException();
     const user = await this.userService.getById(session.uid);
     if (user === null) throw new NotFoundException();
-    await validate(user as UserInfoDto, { whitelist: true });
-    return user;
+    const dto = new UserInfoDto().fromUser(user);
+    return dto;
   }
 
   @Post()
@@ -39,12 +39,11 @@ export class UserController {
     @Body() body,
   ): Promise<DetailedUserInfoDto> {
     if (!('pwd' in body)) throw new UnprocessableEntityException();
-    if (!!session.uid) throw new UnauthorizedException();
+    if (!session.uid) throw new UnauthorizedException();
     const user = await this.userService.getOne(session.uid);
     if (user == null || !this.userService.verify(user, body.pwd))
       throw new UnauthorizedException();
-    await validate(user as DetailedUserInfoDto, { whitelist: true });
-    return user;
+    return new DetailedUserInfoDto().fromUser(user);
   }
 
   @Put()
@@ -52,7 +51,7 @@ export class UserController {
     @Session() session: SessionType,
     @Body() body: EditableUserInfoDto,
   ) {
-    if (!!session.uid) throw new UnauthorizedException();
+    if (!session.uid) throw new UnauthorizedException();
     await this.userService.update(session, body);
     return 'success';
   }
@@ -61,7 +60,6 @@ export class UserController {
   async getOne(@Param('id') uid: string): Promise<UserInfoDto> {
     const user = await this.userService.getOne(uid);
     if (user === null) throw new NotFoundException();
-    await validate(user as UserInfoDto, { whitelist: true });
-    return user;
+    return new UserInfoDto().fromUser(user);
   }
 }
