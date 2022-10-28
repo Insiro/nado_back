@@ -18,20 +18,21 @@ export class PostService {
     @InjectRepository(Posts) private postRepository: Repository<Posts>,
   ) {}
 
-  async getPosts(
-    offset: number,
-    count: null | number = null,
-  ): Promise<Posts[]> {
-    const query = this.postRepository
-      .createQueryBuilder()
-      .select()
-      .offset(offset);
-    if (count) query.limit(count);
-    return await query.execute();
+  async getPosts(offset = 0, count = 100): Promise<Posts[]> {
+    const posts = this.postRepository.find({
+      take: count,
+      skip: offset,
+      loadRelationIds: true,
+    });
+
+    return await posts;
   }
 
   async getOne(postId: string): Promise<Posts> {
-    const post = await this.postRepository.findOne({ where: { id: postId } });
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+      loadRelationIds: true,
+    });
     if (!post) throw new NotFoundException();
     return post;
   }
@@ -41,13 +42,13 @@ export class PostService {
     postOpt: NewPostDto,
     postId: string | null = null,
   ) {
-    const parent = await this.getOne(postId);
+    const parentId = postId ? (await this.getOne(postId)).id : null;
     try {
       await this.postRepository
         .createQueryBuilder()
         .insert()
         .into(Posts)
-        .values({ ...postOpt, parent: parent.id, author: author.uid })
+        .values({ ...postOpt, parent: parentId, author: author.uid })
         .execute();
     } catch (e) {
       throw new UnprocessableEntityException();

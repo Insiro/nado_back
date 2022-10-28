@@ -3,7 +3,6 @@ import { SessionType } from '../utils';
 
 import { RegisterUserDto, SignDto, UserInfoDto } from './user.dto';
 import { UserService } from './user.service';
-import { validate } from 'class-validator';
 
 @Controller('auth')
 export class AuthController {
