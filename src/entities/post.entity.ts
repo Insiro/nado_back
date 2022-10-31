@@ -6,6 +6,8 @@ export default class Posts {
   @PrimaryGeneratedColumn()
   id!: string;
   @Column()
+  title!: string;
+  @Column()
   content!: string;
   @ManyToOne(() => User, (user: User | null) => user?.uid, { cascade: false })
   author!: string | null;

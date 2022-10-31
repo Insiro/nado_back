@@ -56,7 +56,13 @@ export class PostService {
   }
 
   async getSubPosts(postId: string): Promise<Posts[]> {
-    return await this.postRepository.findBy({ parent: postId });
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .where('post.parentId = :id', { id: postId })
+      .setFindOptions({ loadRelationIds: true })
+      .getMany();
+    console.log(posts);
+    return posts;
   }
 
   async updatePost(user: User, postId: string, postOpt: EditPostDto) {
@@ -67,8 +73,9 @@ export class PostService {
         .createQueryBuilder()
         .update(post)
         .set({ ...postOpt })
+        .where({ id: postId })
         .execute();
-    } catch (_) {
+    } catch (e) {
       throw new UnprocessableEntityException();
     }
   }
