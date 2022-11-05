@@ -14,6 +14,7 @@ import { SessionType } from '../utils';
 import { CommentService } from './comment.service';
 import { UserService } from '../user/user.service';
 import { EditableCommentDto } from './comment.dto';
+import { PostService } from 'src/post/post.service';
 
 import Comment from '../entities/comment.entity';
 
@@ -22,16 +23,26 @@ export class CommentController {
   constructor(
     readonly commentService: CommentService,
     readonly userService: UserService,
+    readonly postService: PostService,
   ) {}
   @Get('post/:postId')
   async getCommnentsOfPost(
     @Param('postId') postId: string,
   ): Promise<Comment[]> {
-    return [];
+    return await this.commentService.getByPost(postId);
   }
 
   @Post('post/:postId')
-  async newComment() {
+  async newComment(
+    @Session() session: SessionType,
+    @Param('postId') postId: string,
+    @Body() commentOpt: EditableCommentDto,
+  ) {
+    const user = await this.userService.getSigned(session);
+    const post = await this.postService.getOne(postId);
+    this.commentService.addComment(user.uid, commentOpt, {
+      post: post,
+    });
     return;
   }
 

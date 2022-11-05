@@ -19,7 +19,10 @@ export class CommentService {
   ) {}
 
   async getOne(id: string): Promise<Comment> {
-    const comment = await this.commentRepository.findOne({ where: { id: id } });
+    const comment = await this.commentRepository.findOne({
+      where: { id: id },
+      loadRelationIds: true,
+    });
     if (comment == null) throw new NotFoundException();
     return comment;
   }
@@ -43,6 +46,7 @@ export class CommentService {
       comment.parent = parent.id;
       comment.post = parent.post;
     } else if (option.post) {
+      comment.post = option.post.id;
     } else throw new UnprocessableEntityException();
 
     try {
@@ -57,6 +61,7 @@ export class CommentService {
     if (uid !== comment.author) throw new UnauthorizedException();
     try {
       await this.commentRepository.delete(comment);
+      //TODO: error: not dekleted
     } catch (e) {
       throw new UnprocessableEntityException();
     }
@@ -67,6 +72,7 @@ export class CommentService {
     commentId: string,
     commentOpt: EditableCommentDto,
   ) {
+    //TODO: test updateComment
     const comment = await this.getOne(commentId);
     if (uid !== comment.author) throw new UnauthorizedException();
     try {
@@ -78,9 +84,11 @@ export class CommentService {
   }
 
   async getByPost(postId: string): Promise<Comment[]> {
-    return await this.commentRepository.find({
-      where: { post: postId },
-    });
+    return await this.commentRepository
+      .createQueryBuilder('c')
+      .where('c.postId = :postId', { postId: postId })
+      .setFindOptions({ loadRelationIds: true })
+      .getMany();
   }
 
   async getByAuthor(uid: string): Promise<Comment[]> {
