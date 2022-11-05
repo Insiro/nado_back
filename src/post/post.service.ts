@@ -28,12 +28,20 @@ export class PostService {
     return await posts;
   }
 
-  async getOne(postId: string): Promise<Posts> {
-    const post = await this.postRepository.findOne({
+  async getOne(postId: string, load_parent = false): Promise<Posts> {
+    let post: any = await this.postRepository.findOne({
       where: { id: postId },
       loadRelationIds: true,
     });
     if (!post) throw new NotFoundException();
+
+    if (load_parent && post.parent !== null) {
+      const parent = await this.postRepository.findOne({
+        where: { id: post.parent },
+        loadEagerRelations: true,
+      });
+      post = { ...post, parent: parent };
+    }
     return post;
   }
 
@@ -61,7 +69,6 @@ export class PostService {
       .where('post.parentId = :id', { id: postId })
       .setFindOptions({ loadRelationIds: true })
       .getMany();
-    console.log(posts);
     return posts;
   }
 

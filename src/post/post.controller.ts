@@ -16,7 +16,7 @@ import { SessionType } from '../utils';
 import { UserService } from '../user/user.service';
 import { PostService } from './post.service';
 import { CommentService } from '../comment/comment.service';
-import { NewPostDto } from './post.dto';
+import { NewPostDto, PostDto } from './post.dto';
 
 @Controller('post')
 export class PostController {
@@ -56,8 +56,17 @@ export class PostController {
   }
 
   @Get(':id')
-  async getOne(@Param('id') postId: string): Promise<Posts> {
-    return await this.postService.getOne(postId);
+  async getOne(
+    @Param('id') postId: string,
+    @Query('subpost') subpost = false,
+    @Query('comment') comment = false,
+  ): Promise<PostDto> {
+    const post = await this.postService.getOne(postId, subpost);
+    const postDto = PostDto.fromPost(post);
+    if (comment) {
+      postDto.comment = await this.commentService.getByPost(postId);
+    }
+    return postDto;
   }
 
   @Post(':id')
