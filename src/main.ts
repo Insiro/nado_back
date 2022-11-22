@@ -15,7 +15,7 @@ async function main() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
   app.use(session(sessionOption));
-  await app.listen(3000);
+  await app.listen(13001);
   console.log('initialize nado writer server');
 }
 
