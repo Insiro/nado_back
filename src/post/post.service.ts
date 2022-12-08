@@ -102,7 +102,7 @@ export class PostService {
     if (post.author != user.uid) throw new UnauthorizedException();
     if (!forceDelete) {
       const sub_posts = await this.getSubPosts(postId);
-      if (sub_posts.length > 0) forceDelete = true;
+      if (sub_posts.length === 0) forceDelete = true;
     }
     await this.delete(postId, forceDelete);
   }
