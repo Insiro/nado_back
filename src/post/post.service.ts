@@ -99,7 +99,8 @@ export class PostService {
 
   async deletePost(user: User, postId: string, forceDelete = false) {
     const post = await this.getOne(postId);
-    if (post.author != user.uid) throw new UnauthorizedException();
+    if (post.author !== null && post.author != user.uid)
+      throw new UnauthorizedException();
     if (!forceDelete) {
       const sub_posts = await this.getSubPosts(postId);
       if (sub_posts.length === 0) forceDelete = true;
