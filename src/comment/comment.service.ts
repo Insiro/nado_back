@@ -62,33 +62,39 @@ export class CommentService {
     }
   }
 
-  async deleteComment(uid: string, commentId: string, hardDelete = false) {
+  async deleteComment(uid: string, commentId: string, forceDelete = false) {
     const comment = await this.getOne(commentId);
-    this.validateComment(comment, uid);
+    if (comment.author !== null && comment.author !== uid)
+      throw new UnauthorizedException();
 
-    if (hardDelete) await this.hardDelete(commentId);
-    else {
-      this.commentRepository.update(comment.id, {
-        author: null,
-        content: null,
-      });
+    if (!forceDelete) {
+      const sub_comments = await this.getSubComments(commentId);
+      if (sub_comments.length === 0) forceDelete = true;
     }
+    await this.delete(commentId, forceDelete);
   }
-  async hardDelete(commentId: string) {
-    const result = await this.commentRepository.delete({ id: commentId });
-    if (result.affected == 0) throw new UnprocessableEntityException();
+  private async delete(commentId: string, hard = false) {
+    if (hard) {
+      const result = await this.commentRepository.delete({ id: commentId });
+      if (result.affected == 0) throw new UnprocessableEntityException();
+      return;
+    }
+    this.commentRepository.update(commentId, {
+      author: null,
+      content: null,
+    });
   }
   async updateComment(
     uid: string,
     commentId: string,
     commentOpt: EditableCommentDto,
   ) {
-    //TODO: test updateComment
     const comment = await this.getOne(commentId);
     this.validateComment(comment, uid);
     try {
-      comment.content = commentOpt.content;
-      await this.commentRepository.save(comment);
+      await this.commentRepository.update(commentId, {
+        content: commentOpt.content,
+      });
     } catch (e) {
       throw new UnprocessableEntityException();
     }
@@ -106,5 +112,12 @@ export class CommentService {
     return await this.commentRepository.find({
       where: { author: uid },
     });
+  }
+  async getSubComments(parentId: string): Promise<Comment[]> {
+    const ret = await this.commentRepository
+      .createQueryBuilder('c')
+      .where('c.parentId =:pid', { pid: parentId })
+      .getMany();
+    return ret;
   }
 }

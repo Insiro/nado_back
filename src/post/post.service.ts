@@ -29,7 +29,8 @@ export class PostService {
   }
   validPost(post: Posts, authorId: string = null): Posts {
     if (post.content === null) throw new NotFoundException();
-    if (post.author !== authorId) throw new UnauthorizedException();
+    if (authorId !== null && post.author !== authorId)
+      throw new UnauthorizedException();
     return post;
   }
   async getOne(postId: string, load_parent = false): Promise<Posts> {
@@ -96,22 +97,27 @@ export class PostService {
     }
   }
 
-  async deletePost(user: User, postId: string, hardDelete = false) {
+  async deletePost(user: User, postId: string, forceDelete = false) {
     const post = await this.getOne(postId);
     if (post.author != user.uid) throw new UnauthorizedException();
-
-    if (hardDelete) await this.hardDelete(postId);
-    else
-      await this.postRepository.update(postId, {
-        content: null,
-        title: '',
-        author: null,
-      });
+    if (!forceDelete) {
+      const sub_posts = await this.getSubPosts(postId);
+      if (sub_posts.length > 0) forceDelete = true;
+    }
+    await this.delete(postId, forceDelete);
   }
 
-  async hardDelete(postId: string) {
-    const result = await this.postRepository.delete({ id: postId });
-    if (result.affected == 0) throw new UnprocessableEntityException();
+  private async delete(postId: string, hard = false) {
+    if (hard) {
+      const result = await this.postRepository.delete({ id: postId });
+      if (result.affected == 0) throw new UnprocessableEntityException();
+      return;
+    }
+    await this.postRepository.update(postId, {
+      content: null,
+      title: '',
+      author: null,
+    });
   }
 
   async getByAuthor(uid: string): Promise<Posts[]> {
