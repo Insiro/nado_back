@@ -90,7 +90,8 @@ export class PostService {
   async deletePost(user: User, postId: string) {
     const post = await this.getOne(postId);
     if (post.author != user.uid) throw new UnauthorizedException();
-    await this.postRepository.delete(post);
+    const result = await this.postRepository.delete({ id: postId });
+    if (result.affected == 0) throw new UnprocessableEntityException();
   }
 
   async getByAuthor(uid: string): Promise<Posts[]> {
