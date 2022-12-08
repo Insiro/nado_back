@@ -59,12 +59,9 @@ export class CommentService {
   async deleteComment(uid: string, commentId: string) {
     const comment = await this.getOne(commentId);
     if (uid !== comment.author) throw new UnauthorizedException();
-    try {
-      await this.commentRepository.delete(comment);
-      //TODO: error: not dekleted
-    } catch (e) {
-      throw new UnprocessableEntityException();
-    }
+
+    const result = await this.commentRepository.delete({ id: commentId });
+    if (result.affected == 0) throw new UnprocessableEntityException();
   }
 
   async updateComment(
