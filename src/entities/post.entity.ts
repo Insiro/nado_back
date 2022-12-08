@@ -7,10 +7,14 @@ export default class Posts {
   id!: string;
   @Column()
   title!: string;
-  @Column()
-  content!: string;
-  @ManyToOne(() => User, (user: User | null) => user?.uid, { cascade: false })
+  @Column({ nullable: true })
+  content!: string | null;
+  @ManyToOne(() => User, (user: User | null) => user?.uid, {
+    onDelete: 'SET NULL',
+  })
   author!: string | null;
-  @ManyToOne(() => Posts, (post: Posts | null) => post?.id)
+  @ManyToOne(() => Posts, (post: Posts | null) => post?.id, {
+    onDelete: 'CASCADE',
+  })
   parent!: string | null;
 }

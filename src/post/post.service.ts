@@ -27,7 +27,11 @@ export class PostService {
 
     return await posts;
   }
-
+  validPost(post: Posts, authorId: string = null): Posts {
+    if (post.content === null) throw new NotFoundException();
+    if (post.author !== authorId) throw new UnauthorizedException();
+    return post;
+  }
   async getOne(postId: string, load_parent = false): Promise<Posts> {
     let post: any = await this.postRepository.findOne({
       where: { id: postId },
@@ -50,7 +54,12 @@ export class PostService {
     postOpt: NewPostDto,
     postId: string | null = null,
   ) {
-    const parentId = postId ? (await this.getOne(postId)).id : null;
+    let parentId: string | null = null;
+    if (postId) {
+      const parent = await this.getOne(postId);
+      this.validPost(parent);
+      parentId = parent.id;
+    }
     try {
       await this.postRepository
         .createQueryBuilder()
@@ -74,7 +83,7 @@ export class PostService {
 
   async updatePost(user: User, postId: string, postOpt: EditPostDto) {
     const post = await this.getOne(postId);
-    if (post.author !== user.uid) throw new UnauthorizedException();
+    this.validPost(post, user.uid);
     try {
       await this.postRepository
         .createQueryBuilder()
@@ -87,9 +96,20 @@ export class PostService {
     }
   }
 
-  async deletePost(user: User, postId: string) {
+  async deletePost(user: User, postId: string, hardDelete = false) {
     const post = await this.getOne(postId);
     if (post.author != user.uid) throw new UnauthorizedException();
+
+    if (hardDelete) await this.hardDelete(postId);
+    else
+      await this.postRepository.update(postId, {
+        content: null,
+        title: '',
+        author: null,
+      });
+  }
+
+  async hardDelete(postId: string) {
     const result = await this.postRepository.delete({ id: postId });
     if (result.affected == 0) throw new UnprocessableEntityException();
   }

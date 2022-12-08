@@ -6,14 +6,18 @@ import Posts from './post.entity';
 export default class Comment {
   @PrimaryGeneratedColumn()
   id!: string;
-  @Column()
-  content!: string;
-  @ManyToOne(() => User, (user: User | null) => user?.uid, { cascade: false })
+  @Column({ nullable: true })
+  content!: string | null;
+  @ManyToOne(() => User, (user: User | null) => user?.uid, {
+    onDelete: 'SET NULL',
+  })
   author!: string | null;
-  @ManyToOne(() => Posts, (post: Posts) => post.id, { cascade: true })
+  @ManyToOne(() => Posts, (post: Posts) => post.id, {
+    onDelete: 'CASCADE',
+  })
   post!: string;
   @ManyToOne(() => Comment, (comment: Comment | null) => comment.id, {
-    cascade: false,
+    onDelete: 'SET NULL',
   })
   parent!: string | null;
 }

@@ -26,7 +26,12 @@ export class CommentService {
     if (comment == null) throw new NotFoundException();
     return comment;
   }
-
+  validateComment(comment: Comment, uid: string = null) {
+    if (comment.content === null) throw new NotFoundException();
+    if (uid !== null && comment.author !== uid)
+      throw new UnauthorizedException();
+    return comment;
+  }
   async addComment(
     uid: string,
     commentOpt: EditableCommentDto,
@@ -43,6 +48,7 @@ export class CommentService {
     };
     if (option.parent) {
       const parent = await this.getOne(option.parent);
+      this.validateComment(parent);
       comment.parent = parent.id;
       comment.post = parent.post;
     } else if (option.post) {
@@ -56,14 +62,22 @@ export class CommentService {
     }
   }
 
-  async deleteComment(uid: string, commentId: string) {
+  async deleteComment(uid: string, commentId: string, hardDelete = false) {
     const comment = await this.getOne(commentId);
-    if (uid !== comment.author) throw new UnauthorizedException();
+    this.validateComment(comment, uid);
 
+    if (hardDelete) await this.hardDelete(commentId);
+    else {
+      this.commentRepository.update(comment.id, {
+        author: null,
+        content: null,
+      });
+    }
+  }
+  async hardDelete(commentId: string) {
     const result = await this.commentRepository.delete({ id: commentId });
     if (result.affected == 0) throw new UnprocessableEntityException();
   }
-
   async updateComment(
     uid: string,
     commentId: string,
@@ -71,7 +85,7 @@ export class CommentService {
   ) {
     //TODO: test updateComment
     const comment = await this.getOne(commentId);
-    if (uid !== comment.author) throw new UnauthorizedException();
+    this.validateComment(comment, uid);
     try {
       comment.content = commentOpt.content;
       await this.commentRepository.save(comment);
